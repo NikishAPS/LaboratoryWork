@@ -203,6 +203,7 @@ int main()
 	list.Put(12);
 	list.Put(2546);
 
+
 	printf("ѕосле очищени€ и добавлени€ нового значени€:\nsize = %d\n", list.Size());
 	for (size_t i = 0; i < list.Size(); i++)
 	{
