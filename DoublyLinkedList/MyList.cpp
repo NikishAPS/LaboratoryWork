@@ -1,61 +1,66 @@
 #include <iostream>
 
+/*Шаблон для класса MyList. Это нужно для того, чтобы в класс помещать любой тип данных.
+Например, у нас может быть список строк, список целочисленных знаений и т. д.
+Для того, чтобы для каждого типа данных не создавать свой класс, можно создать один шаблонный класс.
+В аргумент "T" можешь указать, что угодно, например "type"*/
 
-template<typename T>
-class MyList
+template<typename T> //шаблон
+class MyList //класс, отвечающий за реализацию списка
 {
 private:
 
-	template<typename T>
-	class Node
+	template<typename T> //узлы списка должны иметь тот же шаблон
+	class Node //класс узла
 	{
 	public:
 
+		/*data - тип данных, который хранится в каждом узле списка (string, int, float и т. д),
+		в зависимоти от того, какого типа данных создается список (List<int> list;)
+		*/
 		T data;
-		Node *next;
-		Node *prev;
+		Node *next; //указатель на следующий узел
+		Node *prev; //указатель на предыдущий узел
 
-		Node(T data, Node *next, Node *prev)
+		Node(T data, Node *next, Node *prev) //конструктор класса узла
 		{
+			//при создании узла инициализируем его поля
 			this->data = data;
 			this->next = next;
 			this->prev = prev;
 		}
 	};
 
-	size_t size;
-	Node<T> *head;
-	Node<T> *tail;
+	size_t size; //текущий размер списка
+	Node<T> *head; //указатель на самый первый элемент списка (нулевой)
+	Node<T> *tail; //указатель на самый последний элемент списка (size - 1)
 
 
 public:
 
-	MyList()
+	MyList() //конструктор класса MyList
 	{
-		size = 0;
+		size = 0; //размер списка 0
 		head = nullptr;
+		tail = nullptr;
 	}
 	
-
-	~MyList()
+	//перегрузка оператора [], чтобы можно было обращаться к элементам списка, как к массиву
+	T& operator[](const size_t index) //принимает индекс и возвращает данные типа T (тип данных, которые содержит список)
 	{
+		Node<T> *cur; //указатель для поиска элемента
 
-	}
-
-	T& operator[](const size_t index)
-	{
-		Node<T> *cur;
-
-		if (index <= size / 2)
+		if (index <= size / 2) //если искомый элемент ближе к началу списка, то...
 		{
+			//начинаем двигаться к нему с головы
 			cur = head;
 			for (size_t i = 0; i < index; i++)
 			{
 				cur = cur->next;
 			}
-			return cur->data;
+			return cur->data; //возвращаем значени искомого элемент
 		}
-		else
+		else //иначе двигаемся с хвоста
 		{
 			cur = tail;
 			for (size_t i = size - 1; i > index; i--)
@@ -66,37 +71,38 @@ public:
 		}
 	}
 
+	//функция, которая добавляет элемент в список (в конец списка)
 	void Put(T data)
 	{
-		if (head == nullptr)
+		if (head == nullptr) //если в списке нет узлов...
 		{
-			head = new Node<T>(data, nullptr, nullptr);
-			tail = head;
+			head = new Node<T>(data, nullptr, nullptr); //создаем узел
+			tail = head; // т. к. узел один, то он является и головой и хвостом
 		}
-		else
+		else //иначе...
 		{
-			Node<T> *cur = new Node<T>(data, nullptr, tail);
-			tail->next = cur;
-			tail = cur;
+			Node<T> *cur = new Node<T>(data, nullptr, tail); //содаем узел
+			tail->next = cur; //теперь узел, который являлся хвостом, указывает на новый хвост,
+			tail = cur; //и сам хвост теперь указывает на новый узел
 		}
 
-		size++;
+		size++; //т. е. мы добавили новый узел, то размер списка увеличивается
 	}
 
+	// функция, удаляющая элемент из списка
 	void Delete(size_t index)
 	{
-
-		if (index == 0)
+		if (index == 0) //если мы удаляем нулевой элемент
 		{
-			Node<T>* t = head;
-			head = head->next;
-			delete t;
-			size--;
-			return;
+			Node<T>* t = head; //сохраняем указатель на текущую голову, чтобы потом удалить ее
+			head = head->next; //теперь головой является следующий элемент
+			delete t; //удаляем изначальную голову
+			size--; //размер списка уменьшается
+			return; //прерываем функцию, так как больще удалять ничего не надо
 		}
 
-		if (index == size - 1)
-		{
+		if (index == size - 1) //если удаляем последний элемент, то все то же самое, только с хвостом
+		{ 
 			Node<T>* t = tail;
 			tail = tail->prev;
 			delete t;
@@ -104,24 +110,26 @@ public:
 			return;
 		}
 
-		Node<T> *p;
-
-		if (index < size / 2)
+		//если удаляем какой-то средний элемент списка
+		Node<T> *p; //(p используется для поиска удаляемого элемента)
+		if (index < size / 2) //если этот элемент находится ближе к началу списка, то
 		{
 			p = head;
-
-			for (size_t i = 0; i < index; i++)
+			for (size_t i = 0; i < index; i++) //начинаем добираться к этому элементу с головы
 			{
 				p = p->next;
-			}
+			}//когда цикл окончен, то p указывает на элмент, который мы хотим удалить
 
+
+			/*
+			2 -> p -> 4
+			если удаляем элемент p, то теперь 2->next должен указывать не на p, а на 4, а
+			4->prev - на 2.
+			*/
 			p->prev->next = p->next;
 			p->next->prev = p->prev;
-
-			delete p;
-
 		}
-		else
+		else //уначе добираемся к удаляемому элементу с конца списка
 		{
 			p = tail;
 
@@ -132,14 +140,13 @@ public:
 
 			p->prev->next = p->next;
 			p->next->prev = p->prev;
-
-			delete p;
-
 		}
 
-		size--;
+		delete p; //удаляем найденный элемент
+		size--; //размер становится меньше
 	}
 
+	//функция для очистки списка
 	void Clear()
 	{
 		for (size_t i = 0; i < size; i++)
@@ -152,12 +159,11 @@ public:
 		size = 0;
 	}
 
+	//получить длину списка
 	size_t Size()
 	{
 		return size;
 	}
-
-
 };
 
 
@@ -171,24 +177,23 @@ int main()
 
 
 
-	MyList<int> list;
+	MyList<int> list; //создаем список, с данными типа int
 
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 10; i++) //заносим в список данные от 0 до 9
 		list.Put(i);
 
 
-
+	
 	printf("Исходные данные:\nsize = %d\n", list.Size());
 	for (size_t i = 0; i < list.Size(); i++)
 	{
-		//printf("i = %d, %d\n", i, list[i]);
 		printf("%d\n", list[i]);
 	}
 	printf("\n\n");
 
 
-	list.Delete(5);
+	list.Delete(5); //удаляем пятый элемент
 
 
 	printf("После удаления:\nsize = %d\n", list.Size());
@@ -198,8 +203,8 @@ int main()
 	}
 	printf("\n\n");
 
-	list.Clear();
-	list.Put(228);
+	list.Clear(); //очищаем список
+	list.Put(228); //заносим в список значения
 	list.Put(12);
 	list.Put(2546);
 
